@@ -1,4 +1,4 @@
-function dedupeCollinear(raw) {
+export function dedupeCollinear(raw) {
   const n = raw.length / 2;
   const pts = [];
   for (let i = 0; i < n; i++) {

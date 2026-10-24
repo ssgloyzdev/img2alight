@@ -80,3 +80,47 @@ export function compositeOnBlack(img) {
   }
   return { width: w, height: h, data: out };
 }
+
+export function smoothImage(img, strength = 1) {
+  const { width: w, height: h } = img;
+  let src = new Uint8ClampedArray(img.data);
+  if (strength <= 0) return { width: w, height: h, data: src };
+  const sigmaR = [0, 24, 32, 40][Math.min(3, strength)];
+  const r = 2;
+  const sw = [];
+  for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) sw.push(Math.exp(-(dx * dx + dy * dy) / 4.5));
+  const lut = new Float32Array(3 * 255 * 255 + 1);
+  for (let i = 0; i < lut.length; i++) lut[i] = Math.exp(-i / (2 * sigmaR * sigmaR));
+  const passes = strength >= 2 ? 2 : 1;
+  for (let pass = 0; pass < passes; pass++) {
+    const dst = new Uint8ClampedArray(src);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const o = (y * w + x) * 4;
+        if (src[o + 3] < 128) continue;
+        const cr = src[o], cg = src[o + 1], cb = src[o + 2];
+        let sr = 0, sg = 0, sb = 0, sum = 0, k = 0;
+        for (let dy = -r; dy <= r; dy++) {
+          const yy = y + dy;
+          for (let dx = -r; dx <= r; dx++, k++) {
+            const xx = x + dx;
+            if (yy < 0 || yy >= h || xx < 0 || xx >= w) continue;
+            const q = (yy * w + xx) * 4;
+            if (src[q + 3] < 128) continue;
+            const dr = src[q] - cr, dg = src[q + 1] - cg, db = src[q + 2] - cb;
+            const wt = sw[k] * lut[dr * dr + dg * dg + db * db];
+            sr += src[q] * wt;
+            sg += src[q + 1] * wt;
+            sb += src[q + 2] * wt;
+            sum += wt;
+          }
+        }
+        dst[o] = sr / sum;
+        dst[o + 1] = sg / sum;
+        dst[o + 2] = sb / sum;
+      }
+    }
+    src = dst;
+  }
+  return { width: w, height: h, data: src };
+}
