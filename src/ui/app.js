@@ -1,4 +1,4 @@
-import { vectorize, toHex, hexToRgb } from '../core/vectorize.js';
+import { vectorize, toHex, hexToRgb, DETAIL } from '../core/vectorize.js';
 import { fitSize, removeBackground } from '../core/preprocess.js';
 import { rasterize } from '../core/raster.js';
 import { compare } from '../core/metrics.js';
@@ -23,8 +23,8 @@ const state = {
 const DETAIL_HINT = {
   low: 'Cepat dan ringan: bentuk kecil disederhanakan.',
   medium: 'Seimbang antara fidelitas dan ukuran file.',
-  high: 'Lebih setia, jumlah layer dan ukuran XML naik tajam.',
-  ultra: 'Peringatan: bisa menghasilkan ribuan layer dan file besar; editor dan perangkat bisa lambat.'
+  high: 'Lebih setia, jumlah layer dan ukuran XML naik.',
+  ultra: 'Peringatan: ratusan layer dan file besar; Alight Motion bisa berat.'
 };
 
 function setStatus(text, progress) {
@@ -107,7 +107,8 @@ async function convert() {
     prepare();
     const detail = $('detail').value;
     const t0 = performance.now();
-    const res = await vectorize(state.img, { detail, overlap: $('overlap').checked }, async (p, msg) => {
+    const smoothSel = $('smooth').value;
+    const res = await vectorize(state.img, { detail, maxShapes: Number($('maxShapes').value) || undefined, smooth: smoothSel === 'auto' ? undefined : Number(smoothSel) }, async (p, msg) => {
       setStatus(msg, p);
       await new Promise((r) => setTimeout(r, 0));
     });
@@ -421,6 +422,7 @@ function bind() {
   drop.addEventListener('drop', (e) => loadFile(e.dataTransfer.files[0]));
   $('detail').addEventListener('change', () => {
     $('detailHint').textContent = DETAIL_HINT[$('detail').value];
+    $('maxShapes').value = DETAIL[$('detail').value].maxShapes;
   });
   for (const id of ['maxDim', 'removeBg', 'bgTol']) {
     $(id).addEventListener('change', () => {
