@@ -143,3 +143,36 @@ test('input tidak valid: gambar kosong dan satu warna', async () => {
   const out = buildProject(r1.layers, { width: 10, height: 10 });
   assert.equal(validateProject(out.xml).shapeCount, 0);
 });
+
+test('batas bentuk maksimal dipatuhi dan hasil tetap valid', async () => {
+  const img = CATEGORIES['lanskap-sintetis']();
+  const res = await vectorize(img, { detail: 'high', maxShapes: 40 });
+  const out = buildProject(res.layers, { width: res.width, height: res.height, baseId: 3900000000 });
+  assert.ok(out.shapeCount <= 40, 'shape ' + out.shapeCount);
+  assert.ok(validateProject(out.xml).ok);
+  const m = compare(img, rasterize(res.layers, res.width, res.height));
+  assert.ok(m.ssim > 0.5);
+});
+
+test('persegi menghasilkan garis lurus tanpa kurva', async () => {
+  const { fitLoop } = await import('../src/core/fit.js');
+  const loop = fitLoop([10, 10, 50, 10, 50, 40, 10, 40]);
+  assert.ok(loop.segs.length <= 6);
+  assert.ok(loop.segs.every((s) => s.t === 'L'));
+});
+
+test('lingkaran piksel menjadi sedikit kurva Bezier', async () => {
+  const { fitLoop } = await import('../src/core/fit.js');
+  const pts = [];
+  const r = 30;
+  const cells = new Set();
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r) cells.add(x + ',' + y);
+  const { traceMask } = await import('../src/core/trace.js');
+  const mw = 2 * r + 1;
+  const mask = new Uint8Array(mw * mw);
+  for (let y = 0; y < mw; y++) for (let x = 0; x < mw; x++) if (cells.has(x - r + ',' + (y - r))) mask[y * mw + x] = 1;
+  const loops = traceMask(mask, mw, mw, 0, 0);
+  const loop = fitLoop(loops[0], { eps: 1, sigma: 1.5 });
+  assert.ok(loop.segs.length < 30, 'segmen ' + loop.segs.length);
+  assert.ok(loop.segs.some((s) => s.t === 'C'));
+});
