@@ -79,7 +79,18 @@
         <label for="bgTol">Toleransi latar</label>
         <input type="range" id="bgTol" min="5" max="120" value="40">
 
-        <label class="toggle"><input type="checkbox" id="overlap"><span>Tumpang-tindih 1 px (tutup celah antar layer)</span></label>
+        <label for="maxShapes">Batas jumlah layer (bentuk) maksimal</label>
+        <input type="number" id="maxShapes" min="2" max="3000" step="1" value="120">
+        <p class="hint">Lebih kecil = Alight Motion lebih ringan. Bentuk kecil dibuang lebih dulu, area di bawahnya tetap terlihat.</p>
+
+        <label for="smooth">Penghalus gambar sebelum konversi</label>
+        <select id="smooth">
+          <option value="auto" selected>Otomatis (sesuai detail)</option>
+          <option value="0">Mati</option>
+          <option value="1">Ringan</option>
+          <option value="2">Sedang</option>
+          <option value="3">Kuat</option>
+        </select>
 
         <button class="btn primary wide" id="convert" type="button" disabled>Konversi</button>
       </div>

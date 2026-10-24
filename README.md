@@ -19,8 +19,16 @@ Unggah seluruh isi folder ke repo GitHub lalu aktifkan GitHub Pages, atau hubung
 
 1. Pilih gambar, atur tingkat detail (rendah/sedang/tinggi/ultra) dan ukuran kanvas.
 2. Tekan Konversi, bandingkan lewat tab Asli, Rekonstruksi, Berdampingan, Overlay.
-3. Edit layer: tampil, nama, warna, urutan, solo, gabung ke bawah, hapus.
-4. Unduh XML, ZIP (XML + pratinjau + manifest), pratinjau PNG, atau manifest.
+3. Atur "Batas jumlah layer" (makin kecil makin ringan di Alight Motion) dan penghalus gambar bila perlu.
+4. Edit layer: tampil, nama, warna, urutan, solo, gabung ke bawah, hapus.
+5. Unduh XML, ZIP (XML + pratinjau + manifest), pratinjau PNG, atau manifest.
+
+## Cara kerja konversi
+
+- Gambar dihaluskan (filter bilateral), warna dikelompokkan, bintik kecil digabung.
+- Layer ditumpuk: tiap layer mencakup region-nya beserta semua region di atasnya, jadi jumlah bentuk dan lubang jauh lebih sedikit dan tidak ada celah.
+- Bila jumlah bentuk melebihi batas, bentuk terkecil dibuang lebih dulu; area itu tetap berwarna dari layer di bawahnya.
+- Garis tepi dihaluskan lalu dicocokkan dengan kurva Bezier (algoritma Schneider), dengan sudut tajam dipertahankan.
 
 ## Struktur
 
@@ -35,7 +43,7 @@ Unggah seluruh isi folder ke repo GitHub lalu aktifkan GitHub Pages, atau hubung
 - Hanya Mode A (vektor). Mode B (raster) dan hybrid tidak tersedia karena sampel tidak memuat layer gambar.
 - Tidak ada segmentasi AI dan tidak ada penamaan semantik; layer bernama "Region 001" dst.
 - Opasitas, gradien, dan stroke tidak diekspor.
-- Gambar foto, gradien halus, dan derau menghasilkan SSIM rendah (sekitar 0.5-0.78 pada uji sintetis) dan jumlah layer sangat besar pada detail tinggi; gambar flat, logo, dan ilustrasi bersih mendekati sempurna.
+- Gambar foto, gradien halus, dan derau tetap menghasilkan SSIM sedang (sekitar 0.76-0.88 pada uji sintetis) dan tampak berlapis seperti poster; gambar flat, logo, dan ilustrasi bersih mendekati sempurna.
 - Benchmark hanya memakai gambar sintetis; belum diuji pada anime atau foto nyata.
 - Urutan z (layer pertama = bawah) adalah asumsi.
 - Tidak ada dependensi eksternal karena registry npm tidak terjangkau saat pengembangan; parser XML dan ZIP ditulis sendiri.
