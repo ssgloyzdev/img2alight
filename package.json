@@ -1,0 +1,13 @@
+{
+  "name": "image2alight",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "analyze": "node tools/analyze-reference.js",
+    "bench": "node tools/benchmark.js",
+    "audit": "node tools/audit-colors.js",
+    "serve": "python3 -m http.server 8080"
+  }
+}
